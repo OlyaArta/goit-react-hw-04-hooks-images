@@ -1,46 +1,50 @@
-import React, { Component } from "react";
+import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import s from "./Modal.module.css";
 import PropTypes from "prop-types";
 
 const modalRoot = document.querySelector("#modal-root");
 
-export default class Modal extends Component {
-  static propTypes = {
-    largeImage: PropTypes.string.isRequired,
-    onClick: PropTypes.func,
-  };
+export default function Modal({ onClick, largeImage }) {
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  });
+  // componentDidMount() {
+  //   // console.log("sds");
+  //   window.addEventListener("keydown", this.handleKeyDown);
+  // }
 
-  componentDidMount() {
-    // console.log("sds");
-    window.addEventListener("keydown", this.handleKeyDown);
-  }
+  // componentWillUnmount() {
+  //   // console.log("saas");
+  //   window.removeEventListener("keydown", this.handleKeyDown);
+  // }
 
-  componentWillUnmount() {
-    // console.log("saas");
-    window.removeEventListener("keydown", this.handleKeyDown);
-  }
-
-  handleKeyDown = (e) => {
+  const handleKeyDown = (e) => {
     if (e.code === "Escape") {
-      this.props.onClick();
+      onClick();
     }
   };
 
-  handleBackdropClose = (event) => {
+  const handleBackdropClose = (event) => {
     if (event.currentTarget === event.target) {
-      this.props.onClick();
+      onClick();
     }
   };
 
-  render() {
-    return createPortal(
-      <div className={s.Overlay} onClick={this.handleBackdropClose}>
-        <div className={s.Modal}>
-          <img src={this.props.largeImage} alt="" />
-        </div>
-      </div>,
-      modalRoot
-    );
-  }
+  return createPortal(
+    <div className={s.Overlay} onClick={handleBackdropClose}>
+      <div className={s.Modal}>
+        <img src={largeImage} alt="" />
+      </div>
+    </div>,
+    modalRoot
+  );
 }
+
+Modal.propTypes = {
+  largeImage: PropTypes.string.isRequired,
+  onClick: PropTypes.func,
+};
