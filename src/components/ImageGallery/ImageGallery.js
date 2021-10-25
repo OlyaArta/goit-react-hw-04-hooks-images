@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 import ImageGalleryItem from "../ImageGalleryItem/ImageGalleryItem";
 import s from "./ImageGallery.module.css";
 
-const ImageGallery = ({ img, clickImages }) => {
+function ImageGallery({ img, clickImages }) {
   return (
     <ul className={s.ImageGallery}>
       {img.map(({ id, webformatURL, largeImageURL }) => (
@@ -15,7 +15,7 @@ const ImageGallery = ({ img, clickImages }) => {
       ))}
     </ul>
   );
-};
+}
 
 ImageGallery.propTypes = {
   img: PropTypes.arrayOf(

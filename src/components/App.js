@@ -1,4 +1,4 @@
-import React from "react";
+import { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
@@ -9,64 +9,96 @@ import Modal from "./Modal/Modal";
 import Spinner from "./Loader/Loader";
 import Button from "./Button/Button";
 
-export default class App extends React.Component {
-  state = {
-    searchQuery: "",
-    images: [],
-    page: 1,
-    showModal: false,
-    loading: false,
-    largeImage: "",
-  };
+export default function App() {
+  // state = {
+  //   searchQuery: "",
+  //   images: [],
+  //   page: 1,
+  //   showModal: false,
+  //   loading: false,
+  //   largeImage: "",
+  // };
 
-  async componentDidUpdate(prevProps, prevState) {
-    const prevSearch = prevState.searchQuery;
-    const nextSearch = this.state.searchQuery;
+  const [searchQuery, setSearchQuery] = useState("");
+  const [images, setImages] = useState([]);
+  const [page, setPage] = useState(1);
+  const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [largeImage, setLargeImage] = useState("");
+  // const [error, setError] = useState(null);
 
-    const prevPage = prevState.page;
-    const nextPage = this.state.page;
+  useEffect(() => {
+    if (!searchQuery) {
+      return;
+    }
 
-    if (prevSearch !== nextSearch || prevPage !== nextPage) {
+    async function example() {
       try {
-        this.setState({ loading: true });
-        const images = await fetchImages(nextSearch, nextPage);
-
-        this.setState((prevState) => ({
-          images: [...prevState.images, ...images],
-        }));
+        setLoading(true);
+        const images = await fetchImages(searchQuery, page);
+        setImages((prevImages) => [...prevImages, ...images]);
       } catch (error) {
-        this.setState({ error });
-        toast.error(this.state.error.message, { theme: "colored" });
+        // setError(error);
+        toast.error(error.message, { theme: "colored" });
       } finally {
-        if (prevState.images.length > 5) {
+        if (page > 1) {
           window.scrollTo({
             top: document.documentElement.scrollHeight,
             behavior: "smooth",
           });
         }
       }
-      this.setState({ loading: false });
+      setLoading(false);
     }
+    example();
+  }, [searchQuery, page]);
+
+  // async componentDidUpdate(prevProps, prevState) {
+  //   const prevSearch = prevState.searchQuery;
+  //   const nextSearch = this.state.searchQuery;
+
+  //   const prevPage = prevState.page;
+  //   const nextPage = this.state.page;
+
+  //   if (prevSearch !== nextSearch || prevPage !== nextPage) {
+  //     try {
+  //       setLoading(true);
+  //       const images = await fetchImages(nextSearch, nextPage);
+
+  //       this.setState((prevState) => ({
+  //         images: [...prevState.images, ...images],
+  //       }));
+  //     } catch (error) {
+  //       // this.setState({ error });
+  //       setError(error);
+  //       toast.error(error.message, { theme: "colored" });
+  //     } finally {
+  //       if (prevState.images.length > 5) {
+  //         window.scrollTo({
+  //           top: document.documentElement.scrollHeight,
+  //           behavior: "smooth",
+  //         });
+  //       }
+  //     }
+  //     setLoading(false);
+  //   }
+  // }
+
+  function handleFormSubmit(searchQuery) {
+    cleanPage();
+    // this.setState({ searchQuery });
+    setSearchQuery(searchQuery);
   }
 
-  handleFormSubmit = (searchQuery) => {
-    this.cleanPage();
-    this.setState({ searchQuery });
+  const cleanPage = () => {
+    setSearchQuery("");
+    setPage(1);
+    setImages([]);
+    setShowModal(false);
   };
 
-  cleanPage = () => {
-    this.setState({
-      searchQuery: "",
-      page: 1,
-      images: [],
-      showModal: false,
-    });
-  };
-
-  loadMore = () => {
-    this.setState((prevState) => ({
-      page: prevState.page + 1,
-    }));
+  const loadMore = () => {
+    setPage((page) => page + 1);
   };
 
   // openModal = (largeImageUrl, tags) => {
@@ -77,32 +109,27 @@ export default class App extends React.Component {
   //   this.setState({ showModal: false });
   // };
 
-  toggleModal = () => {
-    this.setState(({ showModal }) => ({
-      showModal: !showModal,
-    }));
+  const toggleModal = () => {
+    setShowModal(!showModal);
   };
 
-  clickImages = (e) => {
+  const clickImages = (e) => {
     const modalImg = e.currentTarget.alt;
-    this.setState({ showModal: true, largeImage: modalImg });
+    // this.setState({ showModal: true, largeImage: modalImg });
+    setShowModal(true);
+    setLargeImage(modalImg);
   };
 
-  render() {
-    const { showModal, loading, images, largeImage } = this.state;
-    return (
-      <div className="App">
-        <Searchbar onSubmit={this.handleFormSubmit} />
-        {images.length > 0 && (
-          <ImageGallery img={images} clickImages={this.clickImages} />
-        )}
-        {images.length > 1 && <Button onClick={this.loadMore} />}
-        {showModal && (
-          <Modal onClick={this.toggleModal} largeImage={largeImage} />
-        )}
-        {loading && <Spinner />}
-        <ToastContainer autoClose={2500} />
-      </div>
-    );
-  }
+  return (
+    <div className="App">
+      <Searchbar onSubmit={handleFormSubmit} />
+      {images.length > 0 && (
+        <ImageGallery img={images} clickImages={clickImages} />
+      )}
+      {images.length > 1 && <Button onClick={loadMore} />}
+      {showModal && <Modal onClick={toggleModal} largeImage={largeImage} />}
+      {loading && <Spinner />}
+      <ToastContainer autoClose={2500} />
+    </div>
+  );
 }
